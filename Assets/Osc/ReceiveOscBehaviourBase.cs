@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Rug.Osc;
 
@@ -8,7 +9,7 @@ public abstract class ReceiveOscBehaviourBase : MonoBehaviour {
 
     public GameObject ReceiveController;
 
-	public string OscAddress = "/test";
+	public List<string> OscAddress;
 
 	public void Awake () {
 		
@@ -35,9 +36,11 @@ public abstract class ReceiveOscBehaviourBase : MonoBehaviour {
 	public virtual void Start () {
 
 		if (m_ReceiveController != null) {
-
-			m_ReceiveController.Manager.Attach (OscAddress, ReceiveMessage); 
-		}
+            foreach(var s in OscAddress)
+            {
+                m_ReceiveController.Manager.Attach(s, ReceiveMessage);
+            }
+        }
 	}
 
 	// Update is called once per frame
@@ -49,8 +52,11 @@ public abstract class ReceiveOscBehaviourBase : MonoBehaviour {
 
 		// detach from the OscAddressManager
 		if (m_ReceiveController != null) {
-			m_ReceiveController.Manager.Detach (OscAddress, ReceiveMessage);
-		}
+            foreach (var s in OscAddress)
+            {
+                m_ReceiveController.Manager.Detach(s, ReceiveMessage);
+            }
+        }
 	}
 
 	protected abstract void ReceiveMessage (OscMessage message);
