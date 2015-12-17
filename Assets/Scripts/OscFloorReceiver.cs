@@ -5,7 +5,7 @@ using Rug.Osc;
 public class OscFloorReceiver : ReceiveOscBehaviourBase
 {
     public Material SandMaterial;
-    public Material WaterMaterial;
+    public Material SnowMaterial;
     public Material IceMaterial;
     public Material CanMaterial;
 
@@ -16,6 +16,8 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
     public GameObject CanPrefab;
     public GameObject IcePrefab;
+
+    public GameObject FootprintPrefab;
 
     float Map(float value, float inputMin, float inputMax, float outputMin, float outputMax)
     {
@@ -76,17 +78,17 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             Material material;
             GameObject spawnedObject;
             Vector3 position;
-            if (texture == "snow")
+            if (texture == "sand")
             {
                 material = SandMaterial;
                 spawnedObject = Instantiate(CanPrefab);
-                position = new Vector3(0, 0.6f, 0);
+                position = new Vector3(0, 3, 0);
             }
-            else if (texture == "water")
+            else if (texture == "snow")
             {
-                material = WaterMaterial;
+                material = SnowMaterial;
                 spawnedObject = Instantiate(CanPrefab);
-                position = new Vector3(0, 0.6f, 0);
+                position = new Vector3(0, 3, 0);
             }
             else if (texture == "ice")
             {
@@ -98,7 +100,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             {
                 material = CanMaterial;
                 spawnedObject = Instantiate(CanPrefab);
-                position = new Vector3(0, 0.6f, 0);
+                position = new Vector3(0, 3, 0);
             }
             else
             {
@@ -124,7 +126,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                 GameObject tile;
                 float x = (float)message[2];
                 float z = (float)message[3];
-                var localPos = new Vector3();
+                var localPos = new Vector3(0, 0, 0);
                 if (x < 1 && z < 1)
                 {
                     tile = FloorTL;
@@ -161,6 +163,13 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                         child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
                     else
                         Destroy(child);
+                }
+
+                if (true || tile.GetComponent<Renderer>().material.Equals(SnowMaterial))
+                {
+                    var footprintObject = Instantiate(FootprintPrefab);
+                    footprintObject.transform.parent = tile.transform;
+                    footprintObject.transform.position = new Vector3(Map(x, 0, 2, -0.3f, 0.3f), -0.13f, Map(z, 2, 0, -0.3f, 0.3f));
                 }
             }
         }
