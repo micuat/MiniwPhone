@@ -15,6 +15,13 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject FloorBR;
 
     public GameObject CanPrefab;
+    public GameObject IcePrefab;
+
+    float Map(float value, float inputMin, float inputMax, float outputMin, float outputMax)
+    {
+        float outVal = ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin);
+        return outVal;
+    }
 
     protected override void ReceiveMessage(OscMessage message)
     {
@@ -67,21 +74,31 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             }
 
             Material material;
-            if (texture == "sand")
+            GameObject spawnedObject;
+            Vector3 position;
+            if (texture == "snow")
             {
                 material = SandMaterial;
+                spawnedObject = Instantiate(CanPrefab);
+                position = new Vector3(0, 0.6f, 0);
             }
             else if (texture == "water")
             {
                 material = WaterMaterial;
+                spawnedObject = Instantiate(CanPrefab);
+                position = new Vector3(0, 0.6f, 0);
             }
             else if (texture == "ice")
             {
                 material = IceMaterial;
+                spawnedObject = Instantiate(IcePrefab);
+                position = new Vector3(0, 0.51f, 0);
             }
             else if (texture == "can")
             {
                 material = CanMaterial;
+                spawnedObject = Instantiate(CanPrefab);
+                position = new Vector3(0, 0.6f, 0);
             }
             else
             {
@@ -89,10 +106,15 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                 return;
             }
 
+            for (int i = 0; i < tile.transform.childCount; i++)
+            {
+                var child = tile.transform.GetChild(i).gameObject;
+                Destroy(child);
+            }
+
             tile.GetComponent<Renderer>().material = material;
-            var canSpawened = Instantiate(CanPrefab);
-            canSpawened.transform.parent = tile.transform;
-            canSpawened.transform.localPosition = new Vector3(0, 0.6f, 0);
+            spawnedObject.transform.parent = tile.transform;
+            spawnedObject.transform.localPosition = position;
         }
         else if(message.Address == OscAddress[1])
         {
@@ -100,21 +122,32 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             {
                 Debug.Log((float)message[2] + " " + (float)message[3]);
                 GameObject tile;
-                if ((float)message[2] < 1 && (float)message[3] < 1)
+                float x = (float)message[2];
+                float z = (float)message[3];
+                var localPos = new Vector3();
+                if (x < 1 && z < 1)
                 {
                     tile = FloorTL;
+                    localPos.x = Map(x, 0, 1, -0.15f, 0.15f);
+                    localPos.z = Map(z, 1, 0, -0.15f, 0.15f);
                 }
-                else if ((float)message[2] >= 1 && (float)message[3] < 1)
+                else if (x >= 1 && z < 1)
                 {
                     tile = FloorTR;
+                    localPos.x = Map(x, 1, 2, -0.15f, 0.15f);
+                    localPos.z = Map(z, 1, 0, -0.15f, 0.15f);
                 }
-                else if ((float)message[2] < 1 && (float)message[3] >= 1)
+                else if (x < 1 && z >= 1)
                 {
                     tile = FloorBL;
+                    localPos.x = Map(x, 0, 1, -0.15f, 0.15f);
+                    localPos.z = Map(z, 2, 1, -0.15f, 0.15f);
                 }
-                else if ((float)message[2] >= 1 && (float)message[3] >= 1)
+                else if (x >= 1 && z >= 1)
                 {
                     tile = FloorBR;
+                    localPos.x = Map(x, 1, 2, -0.15f, 0.15f);
+                    localPos.z = Map(z, 2, 1, -0.15f, 0.15f);
                 }
                 else
                 {
@@ -123,7 +156,11 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
                 for(int i = 0; i < tile.transform.childCount; i++)
                 {
-                    Destroy(tile.transform.GetChild(i).gameObject);
+                    var child = tile.transform.GetChild(i).gameObject;
+                    if (child.GetComponent<VoronoiDemo>() != null)
+                        child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
+                    else
+                        Destroy(child);
                 }
             }
         }

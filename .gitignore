@@ -17,4 +17,6 @@
 sysinfo.txt
 
 .DS_Store
-
+.vs
+AndroidStudio
+*.apk

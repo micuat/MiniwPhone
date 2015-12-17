@@ -10,10 +10,15 @@ public class FootController : MonoBehaviour {
         Input.gyro.enabled = true;
         InitialRotation = Quaternion.identity;
 	}
-	
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update () {
         transform.rotation = InitialRotation * ConvertRotation(Input.gyro.attitude);
+
+        //float x = Input.GetAxis("Horizontal");
+        //float z = Input.GetAxis("Vertical");
+        //x *= Time.deltaTime * 0.1f;
+        //z *= Time.deltaTime * 0.1f;
+        //transform.Translate(x, 0, z);
     }
 
     private static Quaternion ConvertRotation(Quaternion q)
