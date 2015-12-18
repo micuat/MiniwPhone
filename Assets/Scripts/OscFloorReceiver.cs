@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Rug.Osc;
 
 public class OscFloorReceiver : ReceiveOscBehaviourBase
@@ -8,6 +9,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public Material SnowMaterial;
     public Material IceMaterial;
     public Material CanMaterial;
+    public Material NeutralMaterial;
 
     public GameObject FloorTL;
     public GameObject FloorTR;
@@ -18,6 +20,17 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject IcePrefab;
 
     public GameObject FootprintPrefab;
+
+    Dictionary<GameObject, Material> TileType = new Dictionary<GameObject, Material>();
+
+    public override void Start()
+    {
+        base.Start();
+        TileType.Add(FloorTL, NeutralMaterial);
+        TileType.Add(FloorTR, NeutralMaterial);
+        TileType.Add(FloorBL, NeutralMaterial);
+        TileType.Add(FloorBR, NeutralMaterial);
+    }
 
     float Map(float value, float inputMin, float inputMax, float outputMin, float outputMax)
     {
@@ -114,6 +127,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                 Destroy(child);
             }
 
+            TileType[tile] = material;
             tile.GetComponent<Renderer>().material = material;
             spawnedObject.transform.parent = tile.transform;
             spawnedObject.transform.localPosition = position;
@@ -165,7 +179,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                         Destroy(child);
                 }
 
-                if (true || tile.GetComponent<Renderer>().material.Equals(SnowMaterial))
+                if (TileType[tile] == SnowMaterial)
                 {
                     var footprintObject = Instantiate(FootprintPrefab);
                     footprintObject.transform.parent = tile.transform;
