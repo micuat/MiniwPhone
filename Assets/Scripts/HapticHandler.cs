@@ -24,6 +24,8 @@ namespace Haptic {
 
 			foreach (GameObject chunk in chunks)
 			{
+                if (chunk == null)
+                    continue;
 				Cell cell = chunk.GetComponent<FractureChunk>().cell;
 				float length = 0.2f;
                 //float length = Mathf.Min((Time.timeSinceLevelLoad - impactTime)*2, 2.0f * 2.4f / 6.0f);
