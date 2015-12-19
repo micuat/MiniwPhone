@@ -20,8 +20,11 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject IcePrefab;
 
     public GameObject FootprintPrefab;
+    public Texture2D FootprintTexture;
 
     Dictionary<GameObject, Material> TileType = new Dictionary<GameObject, Material>();
+
+    Texture2D map;
 
     public override void Start()
     {
@@ -30,6 +33,27 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
         TileType.Add(FloorTR, NeutralMaterial);
         TileType.Add(FloorBL, NeutralMaterial);
         TileType.Add(FloorBR, NeutralMaterial);
+
+        map = new Texture2D(1024, 1024);
+
+        for (int i = 0; i < map.height; i++)
+        {
+            for (int j = 0; j < map.width; j++)
+            {
+                var color = FootprintTexture.GetPixel(j, i);
+                if(color.grayscale < 0.7f)
+                {
+                    color = new Color(0, 0, 0, 1);
+                }
+                else
+                {
+                    color = new Color(0, 0, 0, 0);
+                }
+                color = ((i/4 & j/4) != 0 ? Color.white : Color.gray);
+                map.SetPixel(j, i, color);
+            }
+        }
+        map.Apply();
     }
 
     float Map(float value, float inputMin, float inputMax, float outputMin, float outputMax)
@@ -181,6 +205,19 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
                 if (TileType[tile] == SnowMaterial)
                 {
+                    for(int i = 0; i < map.height; i++)
+                    {
+                        for (int j = 0; j < map.width; j++)
+                        {
+                            float f = Mathf.PerlinNoise(i * 0.1f, j * 0.1f);
+                            if (f < 0.5f) f = 0;
+                            map.SetPixel(j, i, new Color(f, f, f));
+                        }
+
+                    }
+                    map.Apply();
+                    tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", map);
+                    //tile.GetComponent<Renderer>().material.SetTexture("_BumpMap", map);
                     var footprintObject = Instantiate(FootprintPrefab);
                     footprintObject.transform.parent = tile.transform;
                     footprintObject.transform.position = new Vector3(Map(x, 0, 2, -0.3f, 0.3f), -0.13f, Map(z, 2, 0, -0.3f, 0.3f));
