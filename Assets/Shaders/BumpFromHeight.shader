@@ -1,4 +1,6 @@
-﻿Shader "Height/Normal Map From Height" {
+﻿// http://polycount.com/discussion/117185/creating-normals-from-alpha-heightmap-inside-a-shader
+
+Shader "Height/Normal Map From Height" {
     Properties{
         _Color("Main Color", Color) = (1,1,1,1)
         _MainTex("Diffuse (RGB) Alpha (A)", 2D) = "white" {}

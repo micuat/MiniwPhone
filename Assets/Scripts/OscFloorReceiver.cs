@@ -34,24 +34,16 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
         TileType.Add(FloorBL, NeutralMaterial);
         TileType.Add(FloorBR, NeutralMaterial);
 
-        map = new Texture2D(1024, 1024);
+        map = new Texture2D(256, 256);
 
         for (int i = 0; i < map.height; i++)
         {
             for (int j = 0; j < map.width; j++)
             {
-                var color = FootprintTexture.GetPixel(j, i);
-                if(color.grayscale < 0.7f)
-                {
-                    color = new Color(0, 0, 0, 1);
-                }
-                else
-                {
-                    color = new Color(0, 0, 0, 0);
-                }
-                color = ((i/4 & j/4) != 0 ? Color.white : Color.gray);
-                map.SetPixel(j, i, color);
+                float f = Mathf.PerlinNoise(i * 0.1f, j * 0.1f) + Mathf.PerlinNoise(i * 0.25f, j * 0.25f) * 0.25f + Mathf.PerlinNoise(i * 0.5f, j * 0.5f) * 0.5f;
+                map.SetPixel(j, i, new Color(f, f, f));
             }
+
         }
         map.Apply();
     }
@@ -153,6 +145,10 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
             TileType[tile] = material;
             tile.GetComponent<Renderer>().material = material;
+            if(material == SnowMaterial)
+            {
+                tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", map);
+            }
             spawnedObject.transform.parent = tile.transform;
             spawnedObject.transform.localPosition = position;
         }
@@ -205,22 +201,29 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
                 if (TileType[tile] == SnowMaterial)
                 {
-                    for(int i = 0; i < map.height; i++)
+                    int texPosX = (int)((-localPos.x + 0.15f) / 0.3f * map.width);
+                    int texPosY = (int)((-localPos.z + 0.15f) / 0.3f * map.height);
+                    int xDim = 100;
+                    int yDim = 150;
+                    for (int i = 0; i < yDim; i++)
                     {
-                        for (int j = 0; j < map.width; j++)
+                        for (int j = 0; j < xDim; j++)
                         {
-                            float f = Mathf.PerlinNoise(i * 0.1f, j * 0.1f);
-                            if (f < 0.5f) f = 0;
-                            map.SetPixel(j, i, new Color(f, f, f));
+                            //if (i < 0 || j < 0 || i >= map.height || j < map.width) continue;
+                            var footPixel = FootprintTexture.GetPixel((int)Map(j, 0, xDim, FootprintTexture.width, 0), (int)Map(i, 0, yDim, FootprintTexture.height, 0));
+                            //var footPixel = FootprintTexture.GetPixelBilinear(FootprintTexture.width - (float)j / xDim, FootprintTexture.height - (float)i / yDim);
+                            int mapX = j + texPosX - xDim / 2;
+                            int mapY = i + texPosY - yDim / 2;
+                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.5f * footPixel);
                         }
 
                     }
                     map.Apply();
                     tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", map);
                     //tile.GetComponent<Renderer>().material.SetTexture("_BumpMap", map);
-                    var footprintObject = Instantiate(FootprintPrefab);
-                    footprintObject.transform.parent = tile.transform;
-                    footprintObject.transform.position = new Vector3(Map(x, 0, 2, -0.3f, 0.3f), -0.13f, Map(z, 2, 0, -0.3f, 0.3f));
+                    //var footprintObject = Instantiate(FootprintPrefab);
+                    //footprintObject.transform.parent = tile.transform;
+                    //footprintObject.transform.position = new Vector3(Map(x, 0, 2, -0.3f, 0.3f), -0.13f, Map(z, 2, 0, -0.3f, 0.3f));
                 }
             }
         }
