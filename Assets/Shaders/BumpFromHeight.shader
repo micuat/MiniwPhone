@@ -26,10 +26,11 @@ Shader "Height/Normal Map From Height" {
 
     sampler2D _MainTex, _BumpMap, _HeightMap;
     float _HeightmapStrength, _HeightmapDimX, _HeightmapDimY;
+    float4 _Color;
 
     void surf(Input IN, inout SurfaceOutput o)
     {
-        o.Albedo = fixed3(0.5, 0.5, 0.5);
+        o.Albedo = tex2D(_MainTex, IN.uv_MainTex);
 
         float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_MainTex));
 
@@ -38,6 +39,15 @@ Shader "Height/Normal Map From Height" {
         float s = tex2D(_HeightMap,float2(IN.uv_MainTex.x,IN.uv_MainTex.y - 1.0 / _HeightmapDimY)).x;
         float e = tex2D(_HeightMap,float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX,IN.uv_MainTex.y)).x;
         float w = tex2D(_HeightMap,float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX,IN.uv_MainTex.y)).x;
+        float nn = tex2D(_HeightMap, float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 2.0 / _HeightmapDimY)).x;
+        float ss = tex2D(_HeightMap, float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 2.0 / _HeightmapDimY)).x;
+        float ee = tex2D(_HeightMap, float2(IN.uv_MainTex.x - 2.0 / _HeightmapDimX, IN.uv_MainTex.y)).x;
+        float ww = tex2D(_HeightMap, float2(IN.uv_MainTex.x + 2.0 / _HeightmapDimX, IN.uv_MainTex.y)).x;
+
+        n = (nn + n + me) * 0.33f;
+        s = (ss + s + me) * 0.33f;
+        e = (ee + e + me) * 0.33f;
+        w = (ww + w + me) * 0.33f;
 
         float3 norm = normal;
         float3 temp = norm; //a temporary vector that is not parallel to norm
@@ -64,7 +74,8 @@ Shader "Height/Normal Map From Height" {
         lightDir = normalize(lightDir);
         s.Normal = normalize(s.Normal);
         float NdotL = dot(s.Normal, lightDir);
-        _LightColor0.rgb = _LightColor0.rgb;
+        //_LightColor0.rgb = _LightColor0.rgb;
+        _LightColor0.rgb = _Color;
 
         fixed4 c;
         c.rgb = float3(0.5, 0.5, 0.5) * saturate(NdotL) * _LightColor0.rgb * atten;

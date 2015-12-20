@@ -24,7 +24,24 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
     Dictionary<GameObject, Material> TileType = new Dictionary<GameObject, Material>();
 
-    Texture2D map;
+    Dictionary<GameObject, Texture2D> Maps = new Dictionary<GameObject, Texture2D>();
+
+    public int MapDimensions = 256;
+    
+    void InitNoiseMap(Texture2D map)
+    {
+        for (int i = 0; i < map.height; i++)
+        {
+            for (int j = 0; j < map.width; j++)
+            {
+                float f = Mathf.PerlinNoise(i * 0.1f, j * 0.1f) + Mathf.PerlinNoise(i * 0.25f, j * 0.25f) * 0.25f + Mathf.PerlinNoise(i * 0.5f, j * 0.5f) * 0.5f;
+                f = Map(f, 0, 1, 0.66f, 1.0f);
+                map.SetPixel(j, i, new Color(f, f, f));
+            }
+
+        }
+        map.Apply();
+    }
 
     public override void Start()
     {
@@ -34,18 +51,17 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
         TileType.Add(FloorBL, NeutralMaterial);
         TileType.Add(FloorBR, NeutralMaterial);
 
-        map = new Texture2D(256, 256);
 
-        for (int i = 0; i < map.height; i++)
+        Maps.Add(FloorTL, new Texture2D(MapDimensions, MapDimensions));
+        Maps.Add(FloorTR, new Texture2D(MapDimensions, MapDimensions));
+        Maps.Add(FloorBL, new Texture2D(MapDimensions, MapDimensions));
+        Maps.Add(FloorBR, new Texture2D(MapDimensions, MapDimensions));
+
+        foreach(var MapPair in Maps)
         {
-            for (int j = 0; j < map.width; j++)
-            {
-                float f = Mathf.PerlinNoise(i * 0.1f, j * 0.1f) + Mathf.PerlinNoise(i * 0.25f, j * 0.25f) * 0.25f + Mathf.PerlinNoise(i * 0.5f, j * 0.5f) * 0.5f;
-                map.SetPixel(j, i, new Color(f, f, f));
-            }
-
+            var map = MapPair.Value;
+            InitNoiseMap(map);
         }
-        map.Apply();
     }
 
     float Map(float value, float inputMin, float inputMax, float outputMin, float outputMax)
@@ -105,18 +121,16 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             }
 
             Material material;
-            GameObject spawnedObject;
+            GameObject spawnedObject = null;
             Vector3 position;
             if (texture == "sand")
             {
                 material = SandMaterial;
-                spawnedObject = Instantiate(CanPrefab);
                 position = new Vector3(0, 3, 0);
             }
             else if (texture == "snow")
             {
                 material = SnowMaterial;
-                spawnedObject = Instantiate(CanPrefab);
                 position = new Vector3(0, 3, 0);
             }
             else if (texture == "ice")
@@ -145,12 +159,16 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
             TileType[tile] = material;
             tile.GetComponent<Renderer>().material = material;
-            if(material == SnowMaterial)
+            if(material == SnowMaterial || material == SandMaterial)
             {
-                tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", map);
+                InitNoiseMap(Maps[tile]);
+                tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", Maps[tile]);
             }
-            spawnedObject.transform.parent = tile.transform;
-            spawnedObject.transform.localPosition = position;
+            if(spawnedObject != null)
+            {
+                spawnedObject.transform.parent = tile.transform;
+                spawnedObject.transform.localPosition = position;
+            }
         }
         else if(message.Address == OscAddress[1])
         {
@@ -196,11 +214,15 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                     if (child.GetComponent<VoronoiDemo>() != null)
                         child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
                     else
-                        Destroy(child);
+                    {
+                        //Destroy(child);
+                        child.transform.localScale = new Vector3(2, 0.1f, 1.5f);
+                    }
                 }
 
-                if (TileType[tile] == SnowMaterial)
+                if (TileType[tile] == SnowMaterial || TileType[tile] == SandMaterial)
                 {
+                    var map = Maps[tile];
                     int texPosX = (int)((-localPos.x + 0.15f) / 0.3f * map.width);
                     int texPosY = (int)((-localPos.z + 0.15f) / 0.3f * map.height);
                     int xDim = 100;
@@ -209,21 +231,17 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                     {
                         for (int j = 0; j < xDim; j++)
                         {
-                            //if (i < 0 || j < 0 || i >= map.height || j < map.width) continue;
-                            var footPixel = FootprintTexture.GetPixel((int)Map(j, 0, xDim, FootprintTexture.width, 0), (int)Map(i, 0, yDim, FootprintTexture.height, 0));
-                            //var footPixel = FootprintTexture.GetPixelBilinear(FootprintTexture.width - (float)j / xDim, FootprintTexture.height - (float)i / yDim);
                             int mapX = j + texPosX - xDim / 2;
                             int mapY = i + texPosY - yDim / 2;
-                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.5f * footPixel);
+                            if (mapX < 0 || mapY < 0 || mapX >= map.width || mapY >= map.height) continue;
+                            var footPixel = FootprintTexture.GetPixel((int)Map(j + Random.Range(-2, 2), 0, xDim, FootprintTexture.width, 0), (int)Map(i + Random.Range(-2, 2), 0, yDim, FootprintTexture.height, 0));
+                            //var footPixel = FootprintTexture.GetPixelBilinear(FootprintTexture.width - (float)j / xDim, FootprintTexture.height - (float)i / yDim);
+                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 1.0f * footPixel);
                         }
 
                     }
                     map.Apply();
                     tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", map);
-                    //tile.GetComponent<Renderer>().material.SetTexture("_BumpMap", map);
-                    //var footprintObject = Instantiate(FootprintPrefab);
-                    //footprintObject.transform.parent = tile.transform;
-                    //footprintObject.transform.position = new Vector3(Map(x, 0, 2, -0.3f, 0.3f), -0.13f, Map(z, 2, 0, -0.3f, 0.3f));
                 }
             }
         }

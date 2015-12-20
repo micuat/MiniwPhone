@@ -27,7 +27,7 @@ namespace Haptic {
                 if (chunk == null)
                     continue;
 				Cell cell = chunk.GetComponent<FractureChunk>().cell;
-				float length = 0.2f;
+				float length = 0.05f;
                 //float length = Mathf.Min((Time.timeSinceLevelLoad - impactTime)*2, 2.0f * 2.4f / 6.0f);
                 var cellV = cell.site.ToVector3();
                 cellV.y = 0;
