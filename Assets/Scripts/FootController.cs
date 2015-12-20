@@ -26,7 +26,7 @@ public class FootController : MonoBehaviour {
         return new Quaternion(-q.x, -q.z, -q.y, q.w);
     }
 
-    void receiveButtonPressed()
+    public void receiveButtonPressed()
     {
         InitialRotation = Quaternion.Inverse(ConvertRotation(Input.gyro.attitude));
         /*

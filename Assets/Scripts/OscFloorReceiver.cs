@@ -22,6 +22,8 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject FootprintPrefab;
     public Texture2D FootprintTexture;
 
+    public GameObject FootObject;
+
     Dictionary<GameObject, Material> TileType = new Dictionary<GameObject, Material>();
 
     Dictionary<GameObject, Texture2D> Maps = new Dictionary<GameObject, Texture2D>();
@@ -143,7 +145,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             {
                 material = CanMaterial;
                 spawnedObject = Instantiate(CanPrefab);
-                position = new Vector3(0, 3, 0);
+                position = new Vector3(0, 0.7f, 0);
             }
             else
             {
@@ -213,10 +215,18 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                     var child = tile.transform.GetChild(i).gameObject;
                     if (child.GetComponent<VoronoiDemo>() != null)
                         child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
-                    else
+                    else if(TileType[tile] == CanMaterial)
                     {
-                        //Destroy(child);
-                        child.transform.localScale = new Vector3(2, 0.1f, 1.5f);
+                        float deform = child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.GetFloat("_Deform");
+                        if (deform < 1)
+                        {
+                            child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.SetFloat("_Deform", deform + 0.1f);
+                            var scale = child.transform.localScale;
+                            scale.x *= 1.05f;
+                            scale.y *= 0.8f;
+                            scale.z *= 1.05f;
+                            child.transform.localScale = scale;
+                        }
                     }
                 }
 
@@ -234,9 +244,11 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                             int mapX = j + texPosX - xDim / 2;
                             int mapY = i + texPosY - yDim / 2;
                             if (mapX < 0 || mapY < 0 || mapX >= map.width || mapY >= map.height) continue;
-                            var footPixel = FootprintTexture.GetPixel((int)Map(j + Random.Range(-2, 2), 0, xDim, FootprintTexture.width, 0), (int)Map(i + Random.Range(-2, 2), 0, yDim, FootprintTexture.height, 0));
+                            var footPixel = FootprintTexture.GetPixel((int)Map(j, 0, xDim, FootprintTexture.width, 0), (int)Map(i, 0, yDim, FootprintTexture.height, 0));
                             //var footPixel = FootprintTexture.GetPixelBilinear(FootprintTexture.width - (float)j / xDim, FootprintTexture.height - (float)i / yDim);
-                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 1.0f * footPixel);
+                            float depth = footPixel.a;
+                            if (depth < 0.1f) continue;
+                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.2f * footPixel);
                         }
 
                     }
@@ -244,6 +256,10 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                     tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", map);
                 }
             }
+        }
+        else if (message.Address == OscAddress[2])
+        {
+            FootObject.GetComponent<FootController>().receiveButtonPressed();
         }
     }
 }
