@@ -175,58 +175,62 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
         }
         else if(message.Address == OscAddress[1])
         {
-            if((string)message[0] == "add")
+            if((string)message[0] == "add" || (string)message[0] == "update")
             {
                 Debug.Log((float)message[2] + " " + (float)message[3]);
                 GameObject tile;
-                float x = (float)message[2];
-                float z = (float)message[3];
+                float x = FootObject.transform.position.x;
+                float z = FootObject.transform.position.z;
                 var localPos = new Vector3(0, 0, 0);
-                if (x < 1 && z < 1)
+                if (x < 0 && z > 0)
                 {
                     tile = FloorTL;
-                    localPos.x = Map(x, 0, 1, -0.15f, 0.15f);
-                    localPos.z = Map(z, 1, 0, -0.15f, 0.15f);
+                    localPos.x = Map(x, -0.3f, 0, -0.15f, 0.15f);
+                    localPos.z = Map(z, 0, 0.3f, -0.15f, 0.15f);
                 }
-                else if (x >= 1 && z < 1)
+                else if (x >= 0 && z > 0)
                 {
                     tile = FloorTR;
-                    localPos.x = Map(x, 1, 2, -0.15f, 0.15f);
-                    localPos.z = Map(z, 1, 0, -0.15f, 0.15f);
+                    localPos.x = Map(x, 0, 0.3f, -0.15f, 0.15f);
+                    localPos.z = Map(z, 0, 0.3f, -0.15f, 0.15f);
                 }
-                else if (x < 1 && z >= 1)
+                else if (x < 0 && z <= 0)
                 {
                     tile = FloorBL;
-                    localPos.x = Map(x, 0, 1, -0.15f, 0.15f);
-                    localPos.z = Map(z, 2, 1, -0.15f, 0.15f);
+                    localPos.x = Map(x, -0.3f, 0, -0.15f, 0.15f);
+                    localPos.z = Map(z, -0.3f, 0, -0.15f, 0.15f);
                 }
-                else if (x >= 1 && z >= 1)
+                else if (x >= 0 && z <= 0)
                 {
                     tile = FloorBR;
-                    localPos.x = Map(x, 1, 2, -0.15f, 0.15f);
-                    localPos.z = Map(z, 2, 1, -0.15f, 0.15f);
+                    localPos.x = Map(x, 0, 0.3f, -0.15f, 0.15f);
+                    localPos.z = Map(z, -0.3f, 0, -0.15f, 0.15f);
                 }
                 else
                 {
                     return;
                 }
 
-                for(int i = 0; i < tile.transform.childCount; i++)
+                // crack/crush only "add"
+                if ((string)message[0] == "add")
                 {
-                    var child = tile.transform.GetChild(i).gameObject;
-                    if (child.GetComponent<VoronoiDemo>() != null)
-                        child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
-                    else if(TileType[tile] == CanMaterial)
+                    for (int i = 0; i < tile.transform.childCount; i++)
                     {
-                        float deform = child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.GetFloat("_Deform");
-                        if (deform < 1)
+                        var child = tile.transform.GetChild(i).gameObject;
+                        if (child.GetComponent<VoronoiDemo>() != null)
+                            child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
+                        else if (TileType[tile] == CanMaterial)
                         {
-                            child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.SetFloat("_Deform", deform + 0.1f);
-                            var scale = child.transform.localScale;
-                            scale.x *= 1.05f;
-                            scale.y *= 0.8f;
-                            scale.z *= 1.05f;
-                            child.transform.localScale = scale;
+                            float deform = child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.GetFloat("_Deform");
+                            if (deform < 1)
+                            {
+                                child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.SetFloat("_Deform", deform + 0.1f);
+                                var scale = child.transform.localScale;
+                                scale.x *= 1.05f;
+                                scale.y *= 0.8f;
+                                scale.z *= 1.05f;
+                                child.transform.localScale = scale;
+                            }
                         }
                     }
                 }
@@ -270,6 +274,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
         else if (message.Address == OscAddress[2])
         {
             FootObject.GetComponent<FootController>().receiveButtonPressed();
+            FootObject.GetComponent<OscPositionReceiver>().receiveButtonPressed();
         }
     }
 }
