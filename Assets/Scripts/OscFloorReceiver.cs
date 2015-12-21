@@ -20,7 +20,8 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject IcePrefab;
 
     public GameObject FootprintPrefab;
-    public Texture2D FootprintTexture;
+    public Texture2D FootprintTextureSnow;
+    public Texture2D FootprintTextureSand;
 
     public GameObject FootObject;
 
@@ -232,11 +233,17 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
                 if (TileType[tile] == SnowMaterial || TileType[tile] == SandMaterial)
                 {
+                    Texture2D FootprintTexture;
+                    if (TileType[tile] == SnowMaterial)
+                        FootprintTexture = FootprintTextureSnow;
+                    else
+                        FootprintTexture = FootprintTextureSand;
+
                     var map = Maps[tile];
                     int texPosX = (int)((-localPos.x + 0.15f) / 0.3f * map.width);
                     int texPosY = (int)((-localPos.z + 0.15f) / 0.3f * map.height);
                     int xDim = 100;
-                    int yDim = 150;
+                    int yDim = 200;
                     for (int i = 0; i < yDim; i++)
                     {
                         for (int j = 0; j < xDim; j++)
@@ -248,6 +255,9 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                             //var footPixel = FootprintTexture.GetPixelBilinear(FootprintTexture.width - (float)j / xDim, FootprintTexture.height - (float)i / yDim);
                             float depth = footPixel.a;
                             if (depth < 0.1f) continue;
+                            footPixel.r = depth;
+                            footPixel.g = depth;
+                            footPixel.b = depth;
                             map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.2f * footPixel);
                         }
 

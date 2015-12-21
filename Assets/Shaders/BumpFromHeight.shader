@@ -9,6 +9,13 @@ Shader "Height/Normal Map From Height" {
         _HeightmapStrength("Heightmap Strength", Float) = 1.0
         _HeightmapDimX("Heightmap Width", Float) = 2048
         _HeightmapDimY("Heightmap Height", Float) = 2048
+        _FootStrength("Footprint Strength", Float) = 1.0
+        _FootTex("Footprint", 2D) = "grey" {}
+        _FootScale("Foot Scale", Vector) = (0.3, 0.6, 0, 0)
+        _FootCenter0("Foot Center 0", Vector) = (0, 0, 0, 0)
+        _FootCenter1("Foot Center 1", Vector) = (0, 0, 0, 0)
+        _FootCenter2("Foot Center 2", Vector) = (0, 0, 0, 0)
+        _FootCenter3("Foot Center 3", Vector) = (0, 0, 0, 0)
     }
 
         SubShader{
@@ -24,9 +31,9 @@ Shader "Height/Normal Map From Height" {
         float2 uv_MainTex;
     };
 
-    sampler2D _MainTex, _BumpMap, _HeightMap;
-    float _HeightmapStrength, _HeightmapDimX, _HeightmapDimY;
-    float4 _Color;
+    sampler2D _MainTex, _BumpMap, _HeightMap, _FootTex;
+    float _HeightmapStrength, _HeightmapDimX, _HeightmapDimY, _FootStrength;
+    float4 _Color, _FootScale, _FootCenter0, _FootCenter1, _FootCenter2, _FootCenter3;
 
     void surf(Input IN, inout SurfaceOutput o)
     {
@@ -34,20 +41,66 @@ Shader "Height/Normal Map From Height" {
 
         float3 normal = UnpackNormal(tex2D(_BumpMap, IN.uv_MainTex));
 
-        float me = tex2D(_HeightMap,IN.uv_MainTex).x;
-        float n = tex2D(_HeightMap,float2(IN.uv_MainTex.x,IN.uv_MainTex.y + 1.0 / _HeightmapDimY)).x;
-        float s = tex2D(_HeightMap,float2(IN.uv_MainTex.x,IN.uv_MainTex.y - 1.0 / _HeightmapDimY)).x;
-        float e = tex2D(_HeightMap,float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX,IN.uv_MainTex.y)).x;
-        float w = tex2D(_HeightMap,float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX,IN.uv_MainTex.y)).x;
-        float nn = tex2D(_HeightMap, float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 2.0 / _HeightmapDimY)).x;
-        float ss = tex2D(_HeightMap, float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 2.0 / _HeightmapDimY)).x;
-        float ee = tex2D(_HeightMap, float2(IN.uv_MainTex.x - 2.0 / _HeightmapDimX, IN.uv_MainTex.y)).x;
-        float ww = tex2D(_HeightMap, float2(IN.uv_MainTex.x + 2.0 / _HeightmapDimX, IN.uv_MainTex.y)).x;
+        float coeff = _FootStrength;
+        float me = tex2D(_HeightMap, IN.uv_MainTex).x;
+        float n = tex2D(_HeightMap, float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 1.0 / _HeightmapDimY)).x;
+        float s = tex2D(_HeightMap, float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 1.0 / _HeightmapDimY)).x;
+        float e = tex2D(_HeightMap, float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX, IN.uv_MainTex.y)).x;
+        float w = tex2D(_HeightMap, float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX, IN.uv_MainTex.y)).x;
 
-        n = (nn + n + me) * 0.33f;
-        s = (ss + s + me) * 0.33f;
-        e = (ee + e + me) * 0.33f;
-        w = (ww + w + me) * 0.33f;
+        /*
+        {
+            float meh = tex2D(_FootTex, -(IN.uv_MainTex + _FootCenter0.xy) * _FootScale.xy).a;
+            float nh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 1.0 / _HeightmapDimY) + _FootCenter0.xy) * _FootScale.xy).a;
+            float sh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 1.0 / _HeightmapDimY) + _FootCenter0.xy) * _FootScale.xy).a;
+            float eh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter0.xy) * _FootScale.xy).a;
+            float wh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter0.xy) * _FootScale.xy).a;
+            me -= meh * coeff;
+            n -= nh * coeff;
+            s -= sh * coeff;
+            e -= eh * coeff;
+            w -= wh * coeff;
+        }
+
+        {
+            float meh = tex2D(_FootTex, -(IN.uv_MainTex + _FootCenter1.xy) * _FootScale.xy).a;
+            float nh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 1.0 / _HeightmapDimY) + _FootCenter1.xy) * _FootScale.xy).a;
+            float sh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 1.0 / _HeightmapDimY) + _FootCenter1.xy) * _FootScale.xy).a;
+            float eh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter1.xy) * _FootScale.xy).a;
+            float wh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter1.xy) * _FootScale.xy).a;
+            me -= meh * coeff;
+            n -= nh * coeff;
+            s -= sh * coeff;
+            e -= eh * coeff;
+            w -= wh * coeff;
+        }
+
+        {
+            float meh = tex2D(_FootTex, -(IN.uv_MainTex + _FootCenter2.xy) * _FootScale.xy).a;
+            float nh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 1.0 / _HeightmapDimY) + _FootCenter2.xy) * _FootScale.xy).a;
+            float sh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 1.0 / _HeightmapDimY) + _FootCenter2.xy) * _FootScale.xy).a;
+            float eh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter2.xy) * _FootScale.xy).a;
+            float wh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter2.xy) * _FootScale.xy).a;
+            me -= meh * coeff;
+            n -= nh * coeff;
+            s -= sh * coeff;
+            e -= eh * coeff;
+            w -= wh * coeff;
+        }
+
+        {
+            float meh = tex2D(_FootTex, -(IN.uv_MainTex + _FootCenter3.xy) * _FootScale.xy).a;
+            float nh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y + 1.0 / _HeightmapDimY) + _FootCenter3.xy) * _FootScale.xy).a;
+            float sh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x, IN.uv_MainTex.y - 1.0 / _HeightmapDimY) + _FootCenter3.xy) * _FootScale.xy).a;
+            float eh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x - 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter3.xy) * _FootScale.xy).a;
+            float wh = tex2D(_FootTex, -(float2(IN.uv_MainTex.x + 1.0 / _HeightmapDimX, IN.uv_MainTex.y) + _FootCenter3.xy) * _FootScale.xy).a;
+            me -= meh * coeff;
+            n -= nh * coeff;
+            s -= sh * coeff;
+            e -= eh * coeff;
+            w -= wh * coeff;
+        }
+        */
 
         float3 norm = normal;
         float3 temp = norm; //a temporary vector that is not parallel to norm
