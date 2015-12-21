@@ -276,5 +276,9 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             FootObject.GetComponent<FootController>().receiveButtonPressed();
             FootObject.GetComponent<OscPositionReceiver>().receiveButtonPressed();
         }
+        else if (message.Address == OscAddress[3])
+        {
+            FootObject.GetComponent<FootController>().ReceiveFadeSwitch();
+        }
     }
 }

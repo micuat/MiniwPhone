@@ -5,8 +5,23 @@ public class FootController : MonoBehaviour {
 
     Quaternion InitialRotation;
 
+    public Material SkeletonMaterial;
+    public GameObject BareModel;
+
+    float FootFade;
+    enum TriggerFade {BareToSkel, SkelToBare, Done };
+    TriggerFade triggerFade;
+    public float SkeletonAlpha = 0.25f;
+    public float BareAlpha = 1;
+    public float FadeIncrement = 0.005f;
+
 	// Use this for initialization
 	void Start () {
+        FootFade = 0;
+        triggerFade = TriggerFade.Done;
+        SkeletonMaterial.color = new Color(255, 255, 255, 0);
+        BareModel.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255, BareAlpha);
+
         Input.gyro.enabled = true;
         InitialRotation = Quaternion.identity;
 	}
@@ -14,11 +29,22 @@ public class FootController : MonoBehaviour {
     void Update () {
         transform.rotation = InitialRotation * ConvertRotation(Input.gyro.attitude);
 
-        //float x = Input.GetAxis("Horizontal");
-        //float z = Input.GetAxis("Vertical");
-        //x *= Time.deltaTime * 0.1f;
-        //z *= Time.deltaTime * 0.1f;
-        //transform.Translate(x, 0, z);
+        if (triggerFade == TriggerFade.BareToSkel)
+        {
+            SkeletonMaterial.color = new Color(255, 255, 255, FootFade * SkeletonAlpha);
+            BareModel.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255, (1 - FootFade) * BareAlpha);
+            FootFade += FadeIncrement;
+            if (FootFade >= 1)
+                triggerFade = TriggerFade.Done;
+        }
+        else if (triggerFade == TriggerFade.SkelToBare)
+        {
+            SkeletonMaterial.color = new Color(255, 255, 255, FootFade * SkeletonAlpha);
+            BareModel.GetComponent<SpriteRenderer>().color = new Color(255, 255, 255, (1 - FootFade) * BareAlpha);
+            FootFade -= FadeIncrement;
+            if (FootFade <= 0)
+                triggerFade = TriggerFade.Done;
+        }
     }
 
     private static Quaternion ConvertRotation(Quaternion q)
@@ -29,17 +55,19 @@ public class FootController : MonoBehaviour {
     public void receiveButtonPressed()
     {
         InitialRotation = Quaternion.Inverse(ConvertRotation(Input.gyro.attitude));
-        /*
-        if (InitialRotation == Quaternion.identity)
+    }
+
+    public void ReceiveFadeSwitch()
+    {
+        if (FootFade < 0.5f)
         {
-            InitialRotation = Quaternion.Inverse(ConvertRotation(Input.gyro.attitude));
+            triggerFade = TriggerFade.BareToSkel;
+            FootFade = 0;
         }
         else
         {
-            InitialRotation = Quaternion.identity;
+            triggerFade = TriggerFade.SkelToBare;
+            FootFade = 1;
         }
-        */
-
-        Debug.Log("pressed");
     }
 }
