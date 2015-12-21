@@ -224,7 +224,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                             float deform = child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.GetFloat("_Deform");
                             if (deform < 1)
                             {
-                                child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.SetFloat("_Deform", deform + 0.1f);
+                                child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.SetFloat("_Deform", deform + 0.2f);
                                 var scale = child.transform.localScale;
                                 scale.x *= 1.05f;
                                 scale.y *= 0.8f;
@@ -262,7 +262,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                             footPixel.r = depth;
                             footPixel.g = depth;
                             footPixel.b = depth;
-                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.2f * footPixel);
+                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.5f * footPixel);
                         }
 
                     }
