@@ -16,7 +16,8 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject FloorBL;
     public GameObject FloorBR;
 
-    public GameObject CanPrefab;
+    public GameObject CanPrefab0;
+    public GameObject CanPrefab1;
     public GameObject IcePrefab;
 
     public GameObject FootprintPrefab;
@@ -125,28 +126,21 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
             Material material;
             GameObject spawnedObject = null;
-            Vector3 position;
             if (texture == "sand")
             {
                 material = SandMaterial;
-                position = new Vector3(0, 3, 0);
             }
             else if (texture == "snow")
             {
                 material = SnowMaterial;
-                position = new Vector3(0, 3, 0);
             }
             else if (texture == "ice")
             {
                 material = IceMaterial;
-                spawnedObject = Instantiate(IcePrefab);
-                position = new Vector3(0, 0.51f, 0);
             }
             else if (texture == "can")
             {
                 material = CanMaterial;
-                spawnedObject = Instantiate(CanPrefab);
-                position = new Vector3(0, 0.7f, 0);
             }
             else
             {
@@ -167,7 +161,31 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                 InitNoiseMap(Maps[tile]);
                 tile.GetComponent<Renderer>().material.SetTexture("_HeightMap", Maps[tile]);
             }
-            if(spawnedObject != null)
+
+            Vector3 position = Vector3.zero;
+            if (texture == "ice")
+            {
+                spawnedObject = Instantiate(IcePrefab);
+                position = new Vector3(0, 0.51f, 0);
+            }
+            else if (texture == "can")
+            {
+                int CanCount = 0;
+                foreach (var type in TileType)
+                {
+                    if (type.Value == CanMaterial)
+                    {
+                        CanCount++;
+                    }
+                }
+                if (CanCount == 1)
+                    spawnedObject = Instantiate(CanPrefab0);
+                else if (CanCount >= 2)
+                    spawnedObject = Instantiate(CanPrefab1);
+                position = new Vector3(0, 0.7f, 0);
+            }
+
+            if (spawnedObject != null)
             {
                 spawnedObject.transform.parent = tile.transform;
                 spawnedObject.transform.localPosition = position;
@@ -221,16 +239,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                             child.GetComponent<VoronoiDemo>().CrackAt(localPos + tile.transform.position);
                         else if (TileType[tile] == CanMaterial)
                         {
-                            float deform = child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.GetFloat("_Deform");
-                            if (deform < 1)
-                            {
-                                child.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.SetFloat("_Deform", deform + 0.2f);
-                                var scale = child.transform.localScale;
-                                scale.x *= 1.05f;
-                                scale.y *= 0.8f;
-                                scale.z *= 1.05f;
-                                child.transform.localScale = scale;
-                            }
+                            child.GetComponent<CanContoller>().Crush();
                         }
                     }
                 }
