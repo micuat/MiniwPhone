@@ -18,6 +18,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
     public GameObject CanPrefab0;
     public GameObject CanPrefab1;
+    public GameObject CanPrefab2;
     public GameObject IcePrefab;
 
     public GameObject FootprintPrefab;
@@ -180,8 +181,10 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                 }
                 if (CanCount == 1)
                     spawnedObject = Instantiate(CanPrefab0);
-                else if (CanCount >= 2)
+                else if (CanCount == 2)
                     spawnedObject = Instantiate(CanPrefab1);
+                else if (CanCount >= 3)
+                    spawnedObject = Instantiate(CanPrefab2);
                 position = new Vector3(0, 0.7f, 0);
             }
 
