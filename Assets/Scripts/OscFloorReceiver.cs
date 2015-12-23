@@ -20,7 +20,8 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
     public GameObject CanPrefab1;
     public GameObject CanPrefab2;
     public GameObject CanPrefab3;
-    public GameObject IcePrefab;
+    public GameObject IcePrefab0;
+    public GameObject IcePrefab1;
 
     public GameObject FootprintPrefab;
     public Texture2D FootprintTextureSnow;
@@ -167,7 +168,18 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             Vector3 position = Vector3.zero;
             if (texture == "ice")
             {
-                spawnedObject = Instantiate(IcePrefab);
+                int IceCount = 0;
+                foreach (var type in TileType)
+                {
+                    if (type.Value == IceMaterial)
+                    {
+                        IceCount++;
+                    }
+                }
+                if (IceCount == 1)
+                    spawnedObject = Instantiate(IcePrefab0);
+                else
+                    spawnedObject = Instantiate(IcePrefab1);
                 position = new Vector3(0, 0.51f, 0);
             }
             else if (texture == "can")

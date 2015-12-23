@@ -1,36 +1,36 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class MovieManager : MonoBehaviour
 {
-    public MovieTexture TextureFirst;
-    public MovieTexture TextureSecond;
+    public List<Texture2D> TextureFirst;
+    public List<Texture2D> TextureSecond;
+
+    List<Texture2D> CurTextures;
+    IEnumerator<Texture2D> CurTexture;
 
     // Use this for initialization
     void Start()
     {
-        //var movieTexture = ((MovieTexture)GetComponent<Renderer>().material.mainTexture);
-        var movieTexture = TextureFirst;
-        movieTexture.loop = true;
-        movieTexture.Play();
-        movieTexture.wrapMode = TextureWrapMode.Repeat;
-
-        movieTexture = TextureSecond;
-        movieTexture.loop = true;
-        movieTexture.Play();
-        movieTexture.wrapMode = TextureWrapMode.Repeat;
-
-        GetComponent<MeshRenderer>().material.SetTexture("_MainTex", TextureFirst);
+        CurTextures = TextureFirst;
+        CurTexture = CurTextures.GetEnumerator();
+        CurTexture.MoveNext();
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        GetComponent<MeshRenderer>().material.SetTexture("_MainTex", CurTexture.Current);
+        if (CurTexture.MoveNext() == false)
+        {
+            CurTexture = CurTextures.GetEnumerator();
+            CurTexture.MoveNext();
+        }
     }
 
     public void Crack()
     {
-        GetComponent<MeshRenderer>().material.SetTexture("_MainTex", TextureSecond);
+        CurTextures = TextureSecond;
+        CurTexture.MoveNext();
     }
 }
