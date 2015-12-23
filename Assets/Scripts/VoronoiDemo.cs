@@ -22,6 +22,8 @@ public class VoronoiDemo : MonoBehaviour
 
 	private List<HapticHandler> handlers;
 
+    public GameObject MovieObject;
+
     void Start()
     {
         bounds.center = transform.position;
@@ -38,6 +40,9 @@ public class VoronoiDemo : MonoBehaviour
     {
         v.y = 0;
         handlers.Add(new HapticHandler(chunks, bounds, v, -Random.Range(1, 10000), this));
+
+        if (MovieObject != null)
+            MovieObject.GetComponent<MovieManager>().Crack();
     }
 
     void Update()
