@@ -14,6 +14,7 @@ public class FootController : MonoBehaviour {
     public float SkeletonAlpha = 0.25f;
     public float BareAlpha = 1;
     public float FadeIncrement = 0.005f;
+    bool UseGyro = true;
 
 	// Use this for initialization
 	void Start () {
@@ -27,7 +28,10 @@ public class FootController : MonoBehaviour {
 	}
     // Update is called once per frame
     void Update () {
-        transform.rotation = InitialRotation * ConvertRotation(Input.gyro.attitude);
+        if(UseGyro)
+            transform.rotation = InitialRotation * ConvertRotation(Input.gyro.attitude);
+        else
+            transform.rotation = Quaternion.identity;
 
         if (triggerFade == TriggerFade.BareToSkel)
         {
@@ -55,6 +59,7 @@ public class FootController : MonoBehaviour {
     public void receiveButtonPressed()
     {
         InitialRotation = Quaternion.Inverse(ConvertRotation(Input.gyro.attitude));
+        UseGyro = !UseGyro;
     }
 
     public void ReceiveFadeSwitch()
