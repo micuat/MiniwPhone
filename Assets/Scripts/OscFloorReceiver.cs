@@ -42,7 +42,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
             for (int j = 0; j < map.width; j++)
             {
                 float f = Mathf.PerlinNoise(i * 0.1f, j * 0.1f) + Mathf.PerlinNoise(i * 0.25f, j * 0.25f) * 0.25f + Mathf.PerlinNoise(i * 0.5f, j * 0.5f) * 0.5f;
-                f = Map(f, 0, 1, 0.66f, 1.0f);
+                f = Map(f, 0, 1, 0.66f, 1.0f) * 0.25f;
                 map.SetPixel(j, i, new Color(f, f, f));
             }
 
@@ -284,12 +284,13 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
                             if (mapX < 0 || mapY < 0 || mapX >= map.width || mapY >= map.height) continue;
                             var footPixel = FootprintTexture.GetPixel((int)Map(j, 0, xDim, FootprintTexture.width, 0), (int)Map(i, 0, yDim, FootprintTexture.height, 0));
                             //var footPixel = FootprintTexture.GetPixelBilinear(FootprintTexture.width - (float)j / xDim, FootprintTexture.height - (float)i / yDim);
-                            float depth = footPixel.a;
-                            if (depth < 0.1f) continue;
+                            float depth = footPixel.r - 0.5f;
+                            //if (depth < 0.1f) continue;
                             footPixel.r = depth;
                             footPixel.g = depth;
                             footPixel.b = depth;
-                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.5f * footPixel);
+                            footPixel.a = depth;
+                            map.SetPixel(mapX, mapY, map.GetPixel(mapX, mapY) - 0.1f * footPixel);
                         }
 
                     }
