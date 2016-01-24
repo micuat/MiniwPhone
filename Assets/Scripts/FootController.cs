@@ -14,7 +14,7 @@ public class FootController : MonoBehaviour {
     public float SkeletonAlpha = 0.25f;
     public float BareAlpha = 1;
     public float FadeIncrement = 0.005f;
-    bool UseGyro = true;
+    bool UseGyro = false;
 
 	// Use this for initialization
 	void Start () {

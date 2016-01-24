@@ -71,6 +71,11 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
         }
     }
 
+    public void TriggerMessage(OscMessage m)
+    {
+        ReceiveMessage(m);
+    }
+
     float Map(float value, float inputMin, float inputMax, float outputMin, float outputMax)
     {
         float outVal = ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin);
