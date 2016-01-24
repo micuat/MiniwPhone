@@ -32,11 +32,14 @@ public class IoioManager : MonoBehaviour {
         {
             var p = foot.transform.position;
             float fsr = androidObject.Get<float>("fsr");
-            if (fsr < 850)
+            if (fsr < 950)
             {
-                fsr = 850;
+                fsr = 950;
                 if(stepped == false)
+                {
                     floorReceiver.TriggerMessage(new OscMessage("/niw/client/aggregator/floorcontact", "add", 0, -0.15f, 0.15f));
+                    floorReceiver.TriggerMessage(new OscMessage("/niw/client/aggregator/floorcontact", "update", 0, -0.15f, 0.15f));
+                }
                 stepped = true;
             }
             else
@@ -44,7 +47,7 @@ public class IoioManager : MonoBehaviour {
                 stepped = false;
             }
 
-            fsr = Map(fsr, 850, 1024, 0, 0.25f);
+            fsr = Map(fsr, 950, 1024, 0, 0.25f);
             p.y = p.y * 0.9f + fsr * 0.1f;
             foot.transform.position = p;
 
@@ -55,19 +58,28 @@ public class IoioManager : MonoBehaviour {
 
     public void ReceiveButtonPressed()
     {
-        if(floorReceiver.TileType[floorReceiver.FloorTL] == floorReceiver.IceMaterial)
+        int preset = 1;
+        if (floorReceiver.TileType[floorReceiver.FloorTL] == floorReceiver.IceMaterial)
+        {
             floorReceiver.TriggerMessage(new OscMessage("/niw/preset", 4, "snow"));
+            preset = 1;
+        }
+        else if (floorReceiver.TileType[floorReceiver.FloorTL] == floorReceiver.SnowMaterial)
+        {
+            floorReceiver.TriggerMessage(new OscMessage("/niw/preset", 4, "sand"));
+            preset = 2;
+        }
         else
+        {
             floorReceiver.TriggerMessage(new OscMessage("/niw/preset", 4, "ice"));
+            preset = 14;
+        }
 
         if (androidObject != null)
         {
             Debug.Log("pressed (init) " + androidObject.GetStatic<int>("testVal"));
             //androidObject.Call("toggleEffect");
-            int b = androidObject.Get<int>("button_");
-            if (b == 0) b = 1;
-            else b = 0;
-            androidObject.Set<int>("button_", b);
+            androidObject.Set<int>("hapticPreset", preset);
         }
         else
         {
