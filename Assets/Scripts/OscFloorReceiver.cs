@@ -29,7 +29,7 @@ public class OscFloorReceiver : ReceiveOscBehaviourBase
 
     public GameObject FootObject;
 
-    Dictionary<GameObject, Material> TileType = new Dictionary<GameObject, Material>();
+    public Dictionary<GameObject, Material> TileType = new Dictionary<GameObject, Material>();
 
     Dictionary<GameObject, Texture2D> Maps = new Dictionary<GameObject, Texture2D>();
 
